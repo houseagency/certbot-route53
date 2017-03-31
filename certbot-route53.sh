@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 if [ -z $CERTBOT_DOMAIN ]; then
   mkdir -p $PWD/letsencrypt
