@@ -1,5 +1,15 @@
 #!/bin/bash
 
+if [ "$DOMAINS" = "" ]; then
+  echo "The DOMAINS environment variable is not set."
+  exit 1
+fi
+
+if [[ ! "$EMAIL" =~ ^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}$ ]]; then
+  echo "The EMAIL is not valid."
+  exit 1
+fi
+
 if [ -z $CERTBOT_DOMAIN ]; then
   mkdir -p $PWD/letsencrypt
 
@@ -12,7 +22,10 @@ if [ -z $CERTBOT_DOMAIN ]; then
     --config-dir $PWD/letsencrypt \
     --work-dir $PWD/letsencrypt \
     --logs-dir $PWD/letsencrypt \
-    $@
+    --agree-tos \
+    --manual-public-ip-logging-ok \
+    --domains "$DOMAINS" \
+    --email "$EMAIL"
 
 else
   [[ $CERTBOT_AUTH_OUTPUT ]] && ACTION="DELETE" || ACTION="UPSERT"
