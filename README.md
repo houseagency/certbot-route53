@@ -1,51 +1,46 @@
-certbot-route53
-===============
+snyltrecept
+===========
 
-This shell script helps create [Let's Encrypt][] certificates for [AWS Route53][]. It uses [Certbot][] to automate certificate requests, and the [AWS CLI][] to automate DNS challenge record creation.
+This script helps create [Let's Encrypt](https://letsencrypt.org/) certificates
+for [AWS Route53](https://aws.amazon.com/route53/).
 
-Installation and Usage
-----------------------
+### Features
 
-1. Install Certbot and the AWS CLI. You can use [Homebrew][] (`brew install awscli certbot`) or [pip][] (`pip install boto3 certbot`).
+* Will use a TXT record on [AWS Route53](https://aws.amazon.com/route53/)
+  for Letsencrypt validation.
+* Will only renew your certs if they are due for renewal, so you can run the
+  script on a cronjob.
+* Dockerized.
+  
 
-2. [Configure the AWS CLI][]. Your account must have permission to list and update Route53 records.
+Dependencies
+------------
 
-3. Download the [certbot-route53.sh][] script.
+* Your domain must use [AWS Route53](https://aws.amazon.com/route53/) for it's
+  domain name servers. (You don't have to buy your domains from Amazon, tho.)
+* The `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` environment variables
+  must be set with proper [IAM](https://aws.amazon.com/iam/) profile
+  credentials.
+* [Docker](https://www.docker.com/) must be installed.
 
-    ```sh
-    mkdir my-certificates
-    cd my-certificates
-    curl -sL https://git.io/vylLx -o certbot-route53.sh
-    chmod a+x certbot-route53.sh
-    ```
+Usage
+-----
 
-4. Run the script with your (comma-separated) domain(s) and email address:
+### 1.
 
-    ```sh
-    sh certbot-route53.sh \
-      --agree-tos \
-      --manual-public-ip-logging-ok \
-      --domains jed.is,www.jed.is \
-      --email $(git config user.email)
-    ```
+Run the script with your domain and e-mail address as first and second
+parameters:
 
-5. Wait patiently (usually about two minutes) while, for each domain requested:
+    ./snyltrecept.sh mydomain.example.com johndoe@example.org
 
-    - Certbot asks Let's Encrypt for a DNS validation challenge string,
-    - AWS CLI asks Route53 to create a domain TXT record with the challenge value,
-    - Let's Encrypt validates the TXT record and returns a certificate, and finally
-    - AWS CLI asks Route53 to delete the TXT record.
+### 2.
 
-6. Find your new certificate(s) in the `letsencrypt/live` directory.
+Wait patiently.
 
-![terminal](https://cloud.githubusercontent.com/assets/4433/23584470/9306b8ac-0130-11e7-9ffc-ef7d91971620.png)
+### 3.
 
-[AWS Route53]: https://aws.amazon.com/route53
-[Let's Encrypt]: https://letsencrypt.org
-[Certbot]: https://certbot.eff.org
-[AWS CLI]: https://aws.amazon.com/cli/
-[Homebrew]: https://brew.sh/
-[pip]: https://pypi.python.org/pypi/pip
-[certbot-route53.sh]: https://git.io/vylLx
-[Configure the AWS CLI]: http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html
+Find your new certificate(s) in the `letsencrypt/live` directory.
 
+If you already had a valid certificate in `letsencrypt/live`, and it is not yet
+due for renewal, no action will be taken. (So you can run this script on a
+cronjob.)
