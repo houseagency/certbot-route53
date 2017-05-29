@@ -9,7 +9,7 @@ for [AWS Route53](https://aws.amazon.com/route53/).
 * Will use a TXT record on [AWS Route53](https://aws.amazon.com/route53/)
   for Letsencrypt validation.
 * Will only renew your certs if they are due for renewal, so you can run the
-  script on a cronjob.
+  script in a daily cronjob.
 * Dockerized.
   
 
@@ -44,3 +44,5 @@ Find your new certificate(s) in the `letsencrypt/live` directory.
 If you already had a valid certificate in `letsencrypt/live`, and it is not yet
 due for renewal, no action will be taken. (So you can run this script on a
 cronjob.)
+
+
