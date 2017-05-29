@@ -1,7 +1,7 @@
 #!/bin/bash
 
-if [ "$DOMAINS" = "" ]; then
-  echo "The DOMAINS environment variable is not set."
+if [ "$DOMAIN" = "" ]; then
+  echo "The DOMAIN environment variable is not set."
   exit 1
 fi
 
@@ -24,7 +24,7 @@ if [ -z $CERTBOT_DOMAIN ]; then
     --logs-dir $PWD/letsencrypt \
     --agree-tos \
     --manual-public-ip-logging-ok \
-    --domains "$DOMAINS" \
+    --domains "$DOMAIN" \
     --email "$EMAIL"
 
 else
@@ -57,4 +57,8 @@ else
   )
   
   echo 1
+fi
+
+if [ "$BUCKET" != "" ]; then
+  aws s3 sync --follow-symlinks --exclude README "$PWD/letsencrypt/live/$DOMAIN" "s3://$BUCKET/$DOMAIN" 
 fi

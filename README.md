@@ -2,7 +2,7 @@ snyltrecept
 ===========
 
 This script helps create [Let's Encrypt](https://letsencrypt.org/) certificates
-for [AWS Route53](https://aws.amazon.com/route53/).
+by validating through [AWS Route53](https://aws.amazon.com/route53/).
 
 ### Features
 
@@ -10,8 +10,8 @@ for [AWS Route53](https://aws.amazon.com/route53/).
   for Letsencrypt validation.
 * Will only renew your certs if they are due for renewal, so you can run the
   script in a daily cronjob.
+* Can upload certs to Amazon S3.
 * Dockerized.
-  
 
 Dependencies
 ------------
@@ -45,4 +45,40 @@ If you already had a valid certificate in `letsencrypt/live`, and it is not yet
 due for renewal, no action will be taken. (So you can run this script on a
 cronjob.)
 
+Upload certs to AWS S3
+----------------------
+
+Add a third parameter to upload certs to AWS S3:
+
+    ./snyltrecept.sh mydomain.example.com johndoe@example.org bucket/certs
+
+That will create (or update) those files in your S3 bucket:
+
+* `certs/mydomain.example.com/certs.pem`
+* `certs/mydomain.example.com/chain.pem`
+* `certs/mydomain.example.com/fullchain.pem`
+* `certs/mydomain.example.com/privkey.pem`
+
+IAM Policy
+----------
+
+```
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "route53:*",
+                "route53domains:*",
+                "s3:*"
+            ],
+            "Resource": "*"
+        }
+    ]
+}
+```
+
+You should limit your policy to only the resources you actually need. If you
+do not want to upload your certs to S3, then remove the `"s3:*"` action.
 
