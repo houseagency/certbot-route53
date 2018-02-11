@@ -6,8 +6,10 @@ RUN apt-get -y install python-pip
 RUN apt-get -y install libssl-dev
 RUN apt-get -y install libffi-dev
 RUN pip install awscli boto3 certbot
+RUN apt-get -y install jq
 
 VOLUME /app
 WORKDIR /app
 
-CMD ["./certbot-route53.sh"]
+ENTRYPOINT ["./scripts/main.sh"]
+CMD []

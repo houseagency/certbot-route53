@@ -10,7 +10,7 @@ by validating through [AWS Route53](https://aws.amazon.com/route53/).
   for Letsencrypt validation.
 * Will only renew your certs if they are due for renewal, so you can run the
   script in a daily cronjob.
-* Can upload certs to Amazon S3.
+* Handles multiple certs for domains on multiple AWS accounts.
 * Dockerized.
 
 Dependencies
@@ -18,9 +18,6 @@ Dependencies
 
 * Your domain must use [AWS Route53](https://aws.amazon.com/route53/) for it's
   domain name servers. (You don't have to buy your domains from Amazon, tho.)
-* The `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` environment variables
-  must be set with proper [IAM](https://aws.amazon.com/iam/) profile
-  credentials.
 * [Docker](https://www.docker.com/) must be installed.
 
 Usage
@@ -28,36 +25,44 @@ Usage
 
 ### 1.
 
-Run the script with your domain and e-mail address as first and second
-parameters:
+Create a `config.json` file from this template:
 
-    ./snyltrecept.sh mydomain.example.com johndoe@example.org
+    {
+      "myapp": {
+        "domains": [
+          "example.org",
+          "example.net"
+        ],
+        "email": "johndoe@my-email-provider.com",
+        "route53_credentials": {
+          "aws_key_id": "AKIFDE3TJFEWBVKFDSE",
+          "aws_sekret_key": "8+C7z6A37sMTFABG3jMVsm9epO2JdslhQ4MeDEjM"
+        }
+      },
+      "catpicssite": {
+        "domains": [
+          "example.com",
+          "www.example.com",
+          "api.example.com"
+        ],
+        "email": "meow@example.com",
+        "route53_credentials": {
+          "aws_key_id": "AKIFDE3TJFEWBVKFDSE",
+          "aws_sekret_key": "8+C7z6A37sMTFABG3jMVsm9epO2JdslhQ4MeDEjM"
+        }
+      }
+    }
+    
 
 ### 2.
 
-Wait patiently.
+Run Snyltrecept (and wait patiently).
+
+    ./snyltrecept.sh
 
 ### 3.
 
-Find your new certificate(s) in the `letsencrypt/live` directory.
-
-If you already had a valid certificate in `letsencrypt/live`, and it is not yet
-due for renewal, no action will be taken. (So you can run this script on a
-cronjob.)
-
-Upload certs to AWS S3
-----------------------
-
-Add a third parameter to upload certs to AWS S3:
-
-    ./snyltrecept.sh mydomain.example.com johndoe@example.org bucket/certs
-
-That will create (or update) those files in your S3 bucket:
-
-* `certs/mydomain.example.com/certs.pem`
-* `certs/mydomain.example.com/chain.pem`
-* `certs/mydomain.example.com/fullchain.pem`
-* `certs/mydomain.example.com/privkey.pem`
+Find your new certificate(s) in the `.certbot` directory.
 
 IAM Policy
 ----------
@@ -70,8 +75,7 @@ IAM Policy
             "Effect": "Allow",
             "Action": [
                 "route53:*",
-                "route53domains:*",
-                "s3:*"
+                "route53domains:*"
             ],
             "Resource": "*"
         }
@@ -79,6 +83,5 @@ IAM Policy
 }
 ```
 
-You should limit your policy to only the resources you actually need. If you
-do not want to upload your certs to S3, then remove the `"s3:*"` action.
+You should limit your policy to only the resources you actually need.
 

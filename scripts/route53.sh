@@ -1,0 +1,30 @@
+#!/bin/bash
+[[ $CERTBOT_AUTH_OUTPUT ]] && ACTION="DELETE" || ACTION="UPSERT"
+
+printf -v QUERY 'HostedZones[?ends_with(`%s.`,Name)].Id' $CERTBOT_DOMAIN
+
+HOSTED_ZONE_ID=$(aws route53 list-hosted-zones --query $QUERY --output text)
+
+if [ -z $HOSTED_ZONE_ID ]; then
+  echo "No hosted zone found that matches $CERTBOT_DOMAIN"
+  exit 1
+fi
+
+aws route53 wait resource-record-sets-changed --id $(
+  aws route53 change-resource-record-sets \
+  --hosted-zone-id $HOSTED_ZONE_ID \
+  --query ChangeInfo.Id --output text \
+  --change-batch "{
+    \"Changes\": [{
+      \"Action\": \"$ACTION\",
+      \"ResourceRecordSet\": {
+        \"Name\": \"_acme-challenge.$CERTBOT_DOMAIN.\",
+        \"ResourceRecords\": [{\"Value\": \"\\\"$CERTBOT_VALIDATION\\\"\"}],
+        \"Type\": \"TXT\",
+        \"TTL\": 30
+      }
+    }]
+  }"
+)
+
+echo 1
