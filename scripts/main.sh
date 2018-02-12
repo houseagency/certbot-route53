@@ -31,7 +31,6 @@ archive() {
   else
     CHECKSUM0="$(md5sum "$TMPARCHIVE" | sed 's/ .*//')"
     CHECKSUM1="$(md5sum "$CERTBLOBDIR/$CERTNAME.tar.bz2" | sed 's/ .*//')"
-    echo "$CHECKSUM0 $CHECKSUM1"
     if [ "$CHECKSUM0" != "$CHECKSUM1" ]; then
       cp "$TMPARCHIVE" "$CERTBLOBDIR/$CERTNAME.tar.bz2"
       encrypt "$CERTNAME"
@@ -71,9 +70,12 @@ encrypt() {
 
   CERTBLOBDIR="../.certblobs"
   ENCPASS="$(encryptionpassphrase "$CERTNAME")"
+
+  mkdir -p "$CERTBLOBDIR/encrypted"
+
   if [ "$ENCPASS" != "" ]; then
     echo "$ENCPASS" | gpg --passphrase-fd 0 --batch --yes \
-      --output "$CERTBLOBDIR/$CERTNAME.tar.bz2.gpg" \
+      --output "$CERTBLOBDIR/encrypted/$CERTNAME.tar.bz2.gpg" \
       --symmetric "$CERTBLOBDIR/$CERTNAME.tar.bz2"
   fi
 
