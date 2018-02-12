@@ -1,5 +1,39 @@
 #!/bin/bash
 
+archive() {
+  CERTNAME="$1"
+
+  CERTBLOBDIR="../.certblobs"
+  mkdir -p "$CERTBLOBDIR"
+
+  LIVEDIR="../.certbot/$CERTNAME/config/live"
+  DIR="$LIVEDIR/$(ls "$LIVEDIR" | head -1)"
+
+  TMPDIR="$(tempfile)"
+  rm "$TMPDIR"
+  mkdir -p "$TMPDIR"
+  cp "$DIR/cert.pem" "$TMPDIR/cert.pem"
+  cp "$DIR/chain.pem" "$TMPDIR/chain.pem"
+  cp "$DIR/fullchain.pem" "$TMPDIR/fullchain.pem"
+  cp "$DIR/privkey.pem" "$TMPDIR/privkey.pem"
+
+  pushd "$TMPDIR" >/dev/null
+  TMPARCHIVE="$(tempfile)"
+  tar cjf "$TMPARCHIVE" *
+  popd >/dev/null
+
+  if [ ! -e "$CERTBLOBDIR/$CERTNAME.tar.bz2" ]; then
+    mv "$TMPARCHIVE" "$CERTBLOBDIR/$CERTNAME.tar.bz2"
+  else
+    CHECKSUM0="$(md5sum "$TMPARCHIVE" | sed 's/ .*//')"
+    CHECKSUM1="$(md5sum "$CERTBLOBDIR/$CERTNAME.tar.bz2" | sed 's/ .*//')"
+    if [ "$CHECKSUM0" != "$CHECKSUM1" ]; then
+      cp "$TMPARCHIVE" "$CERTBLOBDIR/$CERTNAME.tar.bz2"
+    fi
+  fi
+  rm -Rf "$TMPDIR"
+}
+
 certconfig() {
   CERTNAME="$1"
   config | jq -r ".[\"$CERTNAME\"]"
@@ -47,7 +81,6 @@ letsencrypt() {
     AWS_SECRET_ACCESS_KEY="$(route53secretkey "$CERTNAME")" \
     certbot certonly \
       --non-interactive \
-      --staging \
       --manual \
       --manual-auth-hook ./route53.sh \
       --manual-cleanup-hook ./route53.sh \
@@ -77,6 +110,7 @@ pushd "$(dirname $0)" >/dev/null
 
 for CERTNAME in $(certnames); do
   letsencrypt "$CERTNAME"
+  archive "$CERTNAME"
 done
 
 popd >/dev/null
