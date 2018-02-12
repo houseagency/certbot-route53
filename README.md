@@ -37,7 +37,8 @@ Create a `config.json` file from this template:
         "route53_credentials": {
           "aws_key_id": "AKIFDE3TJFEWBVKFDSE",
           "aws_sekret_key": "8+C7z6A37sMTFABG3jMVsm9epO2JdslhQ4MeDEjM"
-        }
+        },
+		"encryption_passphrase": "topsecret"
       },
       "catpicssite": {
         "domains": [
@@ -49,7 +50,8 @@ Create a `config.json` file from this template:
         "route53_credentials": {
           "aws_key_id": "AKIFDE3TJFEWBVKFDSE",
           "aws_sekret_key": "8+C7z6A37sMTFABG3jMVsm9epO2JdslhQ4MeDEjM"
-        }
+        },
+		"encryption_passphrase": "supertopsecret"
       }
     }
     

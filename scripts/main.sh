@@ -16,6 +16,9 @@ archive() {
   cp "$DIR/chain.pem" "$TMPDIR/chain.pem"
   cp "$DIR/fullchain.pem" "$TMPDIR/fullchain.pem"
   cp "$DIR/privkey.pem" "$TMPDIR/privkey.pem"
+  touch -a -m -t 197001010000.00 $TMPDIR/*
+  chmod 400 $TMPDIR/*
+  chown 1000:1000 $TMPDIR/*
 
   pushd "$TMPDIR" >/dev/null
   TMPARCHIVE="$(tempfile)"
@@ -24,12 +27,18 @@ archive() {
 
   if [ ! -e "$CERTBLOBDIR/$CERTNAME.tar.bz2" ]; then
     mv "$TMPARCHIVE" "$CERTBLOBDIR/$CERTNAME.tar.bz2"
+    encrypt "$CERTNAME"
   else
     CHECKSUM0="$(md5sum "$TMPARCHIVE" | sed 's/ .*//')"
     CHECKSUM1="$(md5sum "$CERTBLOBDIR/$CERTNAME.tar.bz2" | sed 's/ .*//')"
+    echo "$CHECKSUM0 $CHECKSUM1"
     if [ "$CHECKSUM0" != "$CHECKSUM1" ]; then
       cp "$TMPARCHIVE" "$CERTBLOBDIR/$CERTNAME.tar.bz2"
+      encrypt "$CERTNAME"
     fi
+  fi
+  if [ ! -e "$CERTBLOBDIR/$CERTNAME.tar.bz2.gpg" ]; then
+    encrypt "$CERTNAME"
   fi
   rm -Rf "$TMPDIR"
 }
@@ -55,6 +64,24 @@ domains() {
 email() {
   CERTNAME="$1"
   certconfig "$CERTNAME" | jq -r '.email'
+}
+
+encrypt() {
+  CERTNAME="$1"
+
+  CERTBLOBDIR="../.certblobs"
+  ENCPASS="$(encryptionpassphrase "$CERTNAME")"
+  if [ "$ENCPASS" != "" ]; then
+    echo "$ENCPASS" | gpg --passphrase-fd 0 --batch --yes \
+      --output "$CERTBLOBDIR/$CERTNAME.tar.bz2.gpg" \
+      --symmetric "$CERTBLOBDIR/$CERTNAME.tar.bz2"
+  fi
+
+}
+
+encryptionpassphrase() {
+  CERTNAME="$1"
+  certconfig "$CERTNAME" | jq -r '.encryption_passphrase'
 }
 
 letsencrypt() {
