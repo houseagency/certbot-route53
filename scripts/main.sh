@@ -36,7 +36,7 @@ archive() {
       encrypt "$CERTNAME"
     fi
   fi
-  if [ ! -e "$CERTBLOBDIR/$CERTNAME.tar.bz2.gpg" ]; then
+  if [ ! -e "$CERTBLOBDIR/encrypted/$CERTNAME.tar.bz2.gpg" ]; then
     encrypt "$CERTNAME"
   fi
   rm -Rf "$TMPDIR"
